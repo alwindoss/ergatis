@@ -21,3 +21,16 @@ func GetGroups(cfg *Config, groupID string) {
 	}
 	fmt.Println("success...")
 }
+
+func GetGroupMembers(cfg *Config, groupID string) {
+	// fmt.Printf("%+v\n", cfg)
+	adm := admin.NewGitLabAdministrator(cfg.GitLabToken, cfg.BaseURL)
+	grpMems, err := adm.GetGroupMembers(groupID)
+	if errors.Is(err, admin.ErrUnAuthorizedUser) {
+		log.Fatalf("fatal error: %v", err)
+	}
+	for _, g := range grpMems {
+		fmt.Printf("%s\n", g.Name)
+	}
+	fmt.Println("success...")
+}

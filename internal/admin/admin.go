@@ -14,9 +14,16 @@ type Group struct {
 
 type Groups []Group
 
+type Member struct {
+	Name string
+}
+
+type Members []Member
+
 type Administrator interface {
 	UpdateConfig(cfgs ...Config) error
 	GetGroups(groupID string) (Groups, error)
+	GetGroupMembers(groupID string) (Members, error)
 }
 
 func NewGitLabAdministrator(token, baseURL string) Administrator {
@@ -38,6 +45,23 @@ func NewGitLabAdministrator(token, baseURL string) Administrator {
 
 type gitlabAdministrator struct {
 	Client *gitlab.Client
+}
+
+// GetGroupMembers implements Administrator
+func (g *gitlabAdministrator) GetGroupMembers(groupID string) (Members, error) {
+	var mems Members
+	gmems, _, err := g.Client.Groups.ListAllGroupMembers(groupID, nil)
+	if err != nil {
+		err = fmt.Errorf("error while listing group members: %w", err)
+		return nil, err
+	}
+	for _, m := range gmems {
+		mem := Member{
+			Name: m.Username,
+		}
+		mems = append(mems, mem)
+	}
+	return mems, nil
 }
 
 // GetGroups implements Administrator
