@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/xanzy/go-gitlab"
 )
@@ -42,6 +43,16 @@ type gitlabAdministrator struct {
 // GetGroups implements Administrator
 func (g *gitlabAdministrator) GetGroups(groupID string) (Groups, error) {
 	var grps Groups
+
+	gpCh := make(chan Group, 100)
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		for g1 := range gpCh {
+			grps = append(grps, g1)
+		}
+		wg.Done()
+	}()
 	gps, resp, err := g.Client.Groups.ListSubGroups(groupID, nil)
 	if resp.StatusCode == 401 {
 		err = ErrUnAuthorizedUser
@@ -52,13 +63,37 @@ func (g *gitlabAdministrator) GetGroups(groupID string) (Groups, error) {
 		return nil, err
 	}
 	for _, grp := range gps {
-		// fmt.Println("Name is ", grp.Name)
 		grp := Group{
 			Name: grp.Name,
 		}
-		grps = append(grps, grp)
-
+		gpCh <- grp
 	}
+	if resp.TotalPages > 1 {
+		for i := 2; i <= resp.TotalPages; i++ {
+			gps, _, err := g.Client.Groups.ListSubGroups(groupID, &gitlab.ListSubGroupsOptions{
+				ListOptions: gitlab.ListOptions{
+					Page: i,
+				},
+			})
+			if resp.StatusCode == 401 {
+				err = ErrUnAuthorizedUser
+				return nil, err
+			}
+			if err != nil {
+				err = fmt.Errorf("error while listing sub groups: %w", err)
+				return nil, err
+			}
+			for _, grp := range gps {
+				grp := Group{
+					Name: grp.Name,
+				}
+				gpCh <- grp
+			}
+		}
+	}
+	close(gpCh)
+
+	wg.Wait()
 	return grps, nil
 }
 

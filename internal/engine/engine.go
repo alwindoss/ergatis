@@ -4,22 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/alwindoss/ergatis/internal/admin"
 )
-
-type Config struct {
-	Home         string        `env:"HOME"`
-	Port         int           `env:"PORT" envDefault:"3000"`
-	Password     string        `env:"PASSWORD,unset"`
-	IsProduction bool          `env:"PRODUCTION"`
-	Hosts        []string      `env:"HOSTS" envSeparator:":"`
-	Duration     time.Duration `env:"DURATION"`
-	TempFolder   string        `env:"TEMP_FOLDER" envDefault:"${HOME}/tmp" envExpand:"true"`
-	GitLabToken  string        `env:"ERGATIS_TOKEN"`
-	BaseURL      string
-}
 
 func GetGroups(cfg *Config, groupID string) {
 
