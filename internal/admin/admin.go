@@ -55,6 +55,9 @@ func (g *gitlabAdministrator) GetGroupMembers(groupID string) (Members, error) {
 		err = fmt.Errorf("error while listing group members: %w", err)
 		return nil, err
 	}
+	if len(gmems) <= 0 {
+		fmt.Println("No members available")
+	}
 	for _, m := range gmems {
 		mem := Member{
 			Name: m.Username,
