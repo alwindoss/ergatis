@@ -54,6 +54,6 @@ func init() {
 	// is called directly, e.g.:
 	// groupsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	groupsCmd.PersistentFlags().StringVar(&groupID, "group-id", "", "--group-id 717337")
-	groupsCmd.Flags().StringVar(&baseURL, "base-url", "", "--base-url \"https://git.rockylinux.org/api/v4\"")
+	groupsCmd.PersistentFlags().StringVar(&baseURL, "base-url", "", "--base-url \"https://git.rockylinux.org/api/v4\"")
 	groupsCmd.MarkFlagRequired("group-id")
 }
